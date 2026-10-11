@@ -1,0 +1,239 @@
+---
+title: "Are all GPA functions the same?"
+author: "Mike Collyer"
+date: "2026-10-10"
+categories: [code, analysis]
+image: blogimage.png
+---
+
+# Are all GPA functions the same?
+
+## Up first, standard GPA
+
+### `geomorph` vs. `Morpho`
+
+```{r, message=FALSE}
+library(geomorph)
+
+# make a latticed cube
+vert <- 5
+template <- expand.grid(1:vert, 1:vert, 1:vert)
+colnames(template) <- c("x", "y", "z")
+
+# add points for n specimens
+n <- 50
+LM <- LMlist <- lapply(seq_len(n), function(.){
+  as.matrix(template + rnorm(length(template),
+                   mean = 0, sd = 0.3))
+})
+
+LM <- simplify2array(LM)
+plotAllSpecimens(LM)
+
+system.time(GPA1 <- gpagen(LM, print.progress = FALSE))
+plot(GPA1)
+
+library(Morpho)
+system.time(GPA2 <- ProcGPA(LM))
+plotAllSpecimens(GPA2$rotated)
+
+two.b.pls(GPA1$coords, GPA2$rotated, print.progress = FALSE)
+```
+
+Although they seem perfectly correlated, you might notice by spinning the plots a slight difference in the scatter.  With `gpagen`, the default is to project configurations into a space tanget to shape space.  The `procGPA` function does not do this.  So, `gpagen` scatter looks more planar and `procGPA` more hemispherical at each point.  We can update this so they are the same.
+
+```{r}
+system.time(GPA1 <- gpagen(LM, print.progress = FALSE, Proj = FALSE))
+
+plot(GPA1)
+
+two.b.pls(GPA1$coords, GPA2$rotated, print.progress = FALSE)
+```
+
+### Conclusions:
+1. Similar results
+2. `gpagen` is faster
+
+### Add in `shapes::ProcGPA`
+
+```{r}
+library(shapes)
+system.time(GPA3 <- procGPA(LM))
+plotAllSpecimens(GPA2$rotated)
+
+two.b.pls(GPA1$coords, GPA3$rotated, print.progress = FALSE)
+```
+
+### Concluions
+1. Similar results.
+2. `gpagen` is faster
+
+### Add in `Momocs2::fgProcrustes`
+
+```{r, message=FALSE}
+library(Momocs)
+system.time(GPA4 <- fgProcrustes(LMlist, tol = 0.0001))
+
+```
+
+Note that the function appears to work but is only intended for 2D data, so the results are wacko.  
+
+## Let's make this serious (but no plotting because the point fields are too dense!)
+
+```{r, message=FALSE}
+
+
+# make a latticed cube
+vert <- 10
+template <- expand.grid(1:vert, 1:vert, 1:vert)
+colnames(template) <- c("x", "y", "z")
+
+# add points for n specimens
+n <- 100
+LM <- LMlist <- lapply(seq_len(n), function(.){
+  as.matrix(template + rnorm(length(template),
+                   mean = 0, sd = 0.3))
+})
+
+LM <- simplify2array(LM)
+
+system.time(GPA1 <- gpagen(LM, print.progress = FALSE, Proj = FALSE))
+
+system.time(GPA2 <- ProcGPA(LM))
+system.time(GPA3 <- procGPA(LM))
+```
+
+### Updated Conclusion
+2. `geomorph` is ~~faster~~ ***much faster!***
+3. But `ProcGPA` is pretty fast, as well.
+
+# What about sliding semilandmarks?
+
+- Let's pit `geomorph::gpagen` vs. `Morpho::ProcGPA`
+- Let's also consider *long data* (many specimens with fewer semilandmarks) and *wide data* (fewer specimens with many sliding landmarks).
+- Let's use minimzed bending energy.
+- We also need to make sure the functions do the same thing because defaults are different.  For these functions, forcing the number of iterations and the number of cores for parallel processing is key.
+
+## Simulated Examples for `gpagen`
+
+Concerning computational efficiency in GPA, there are two "big data" attributes for which to be concerned with geometric morphometric (GM) data: wide data, which is a large number of landmarks (including semilandmarks); and long data, which is a large set of landmark configurations (specimens).  These should be studied independently in comparative computational assessments, to determine if attempted optimization of analytical functions is successful only in certain regards.  To generate data, we use an automated function, which generates a shape template that is a grid formed along $x$ and $y$ axes, with the height of points inversely associated with distance from center, creating a dome-like figure.  The fraction of sliding semilandmarks and level of variation for isotropic random points applied to the template can also be varied. \hfill\break
+
+
+```{r, include=TRUE, echo = TRUE}
+get.array <- function(grid.n, spec.n, sdev= 0.5, f.surf = 0.5){
+  x <- seq(0:grid.n) - mean(seq(0:grid.n))
+  coord.t <- as.data.frame(expand.grid(x, x))
+  colnames(coord.t) <- c("x", "y")
+  coord.t$z <- apply(coord.t, 1, function(y) 0.5*(sqrt(max(x)^2) - sqrt(sum(y^2))))
+  surf <- which(coord.t$z > quantile(coord.t$z, 1- f.surf))
+  fixed <- (1:nrow(coord.t))[-surf]
+  npk <- length(as.matrix(coord.t))
+  coords <- lapply(1:spec.n, function(.) coord.t + rnorm(npk, sd = sdev))
+  dims <- dim(coords[[1]])
+  coords <- array(unlist(coords), c(dims, spec.n))
+  list(template = coord.t, 
+       coords = coords, 
+       surf = surf, fixed = fixed)
+}
+
+```
+
+## *Wide data* example
+
+Below is an example template of a dome from a $32 \times 32$ grid, with 50% of the landmarks as sliders (shown in red), with 20 specimens, created with this function. \hfill\break
+
+```{r}
+ex1 <- get.array(32, 20, 0.5, 0.5)
+```
+
+### Before GPA
+```{r}
+colors <- rep(1, nrow(ex1$template))
+colors[ex1$surf] <- 2
+plotAllSpecimens(ex1$coords,
+                 plot_param = list(mean.bg = colors))
+```
+
+### After GPA
+```{r}
+GPA1 <- gpagen(ex1$coords, surf = ex1$surf, max.iter = 4, print.progress = FALSE)
+
+plot(GPA1, plot_param = list(mean.bg = colors))
+
+```
+
+## Now compare the two functions.
+
+```{r}
+system.time(
+  {slide <- slider3d(ex1$coords,
+                   SMvector  = ex1$surf,
+                   surp = ex1$surf,
+                   mc.cores = 6,
+                   iterations = 4,
+                   silent = TRUE); 
+  GPA2 <- ProcGPA(slide$dataslide)})
+
+
+system.time(
+  GPA1 <- gpagen(ex1$coords, 
+                 surf = ex1$surf, 
+                 max.iter = 4, 
+                 Parallel = 6,
+                 Proj = FALSE,
+                 print.progress = FALSE))
+
+two.b.pls(GPA1$coords, GPA2$rotated, print.progress = FALSE)
+```
+
+### Conclusions
+1. Comparable results
+2. `gpagen` is faster
+3. Each function has many more arguments to control operations.  The `ProcGPA` function has more arguments for specific sliding objectives.
+
+
+## *Long data* example
+
+```{r}
+ex2 <- get.array(5, 500, 0.4, 0.2)
+```
+
+Plot of just a few specimens:
+
+```{r}
+
+colors <- rep(1, nrow(ex2$template))
+colors[ex2$surf] <- 2
+plotAllSpecimens(ex2$coords[,,1:20],
+                 plot_param = list(mean.bg = colors))
+```
+
+Now let's compare:
+
+```{r}
+system.time(
+  {slide <- slider3d(ex2$coords,
+                   SMvector  = ex2$surf,
+                   surp = ex2$surf,
+                   mc.cores = 6,
+                   iterations = 4,
+                   silent = TRUE); 
+  GPA2 <- ProcGPA(slide$dataslide)})
+
+
+system.time(
+  GPA1 <- gpagen(ex2$coords, 
+                 surf = ex2$surf, 
+                 max.iter = 4, 
+                 Parallel = 6,
+                 Proj = FALSE,
+                 print.progress = FALSE))
+
+two.b.pls(GPA1$coords, GPA2$rotated, print.progress = FALSE)
+```
+
+## Conclusions
+1. **Wowza!**
+2. `Morpho::ProcGPA` is optimized for wide data.
+3. `geomorph::gpagen` is optimized for both wide and short data
+4. Only 20% of the landmarks were semilandmarks, so this could have been worse.

@@ -1,0 +1,26 @@
+project:
+  type: website
+
+website:
+  description: "Blog of (R) fun (for the Collyer Lab of Evolutionary Morphometrics & Statistics)"
+  site-url: https://www.michaelcollyer.com 
+  title: "Blog of (R) fun "
+  navbar:
+    logo: images/evolmorph.png
+    logo-href: index.html
+    right:
+      - about.qmd
+      - icon: github
+        href: https://github.com/mlcollyer
+      - icon: bluesky
+        href: https://bsky.app/profile/mlcollyer.bsky.social
+
+format:
+  html:
+    theme:
+      - flatly
+      - brand
+    css: styles.css
+
+editor: visual
+

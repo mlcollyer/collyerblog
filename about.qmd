@@ -1,0 +1,22 @@
+---
+title: "About"
+image: evolmorph.png
+about:
+  template: jolla
+  links:
+    - icon: bluesky
+      text: Bluesky
+      href: https://bsky.app/profile/mlcollyer
+    - icon: github
+      text: Github
+      href: https://github.com/mlcollyer.bsky.social
+
+---
+
+This blog accompanies the [Collyer Lab of Evolutionary Morphometrics and statistics](https://www.michaelcollyer.com/), providing an environment to post clever or helpful examples of analysis, graphical display, or computational comparisons, using `R` packages designed in the Collyer Lab.  These posts are not really the typical themes found in a lab website, but visitors might find them useful, enjoyable, creative, or annoying, just not obfuscating the normal presentation of lab website information.
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
