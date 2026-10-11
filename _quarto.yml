@@ -1,6 +1,6 @@
 project:
   type: website
-
+  output-dir: docs
 website:
   description: "Blog of (R) fun (for the Collyer Lab of Evolutionary Morphometrics & Statistics)"
   site-url: https://www.michaelcollyer.com 
