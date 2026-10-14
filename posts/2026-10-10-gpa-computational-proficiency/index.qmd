@@ -248,4 +248,4 @@ two.b.pls(GPA1$coords, GPA2$rotated, print.progress = FALSE)
 
 2.  `Morpho::ProcGPA` is optimized for wide data.
 
-3.  `geomorph::gpagen` is optimized for both wide and short data
+3.  `geomorph::gpagen` is optimized for both wide and long data
