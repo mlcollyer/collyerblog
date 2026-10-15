@@ -1,0 +1,165 @@
+---
+title: "How fast is your Procrustes ANOVA?"
+author: "Mike Collyer"
+date: "2026-10-14"
+categories: [code, analysis]
+---
+
+# High-dimensional Procrustes ANOVA
+
+If you have high-dimensional shape data, Procrustes ANOVA to compare group means is probably pretty common. Becuase a Procrustes ANOVA requires a permutation procedure, with thousands of permutations, it can take a long time.
+
+But not all functions are the same! Here we compare several that might be used by researchers who have high-dimensional (HD) shape data: `RRPP::lm.rrpp` & `RRPP::anova.lm.rrpp`, `vegan::adonis2`, and `PERMANOVA::PERMANOVA.`
+
+### Criteria
+
+1.  Single core analysis. Not every function has parallel options, so for functions where it is an option, they will be constrained to use 1 core.
+2.  1,000 random permutations. Except in one case we only use 10, and it will be obvious why.
+3.  ANOVA must be performed. This means for some functions first fitting many linear models then using `anova()`. Others perform ANOVA inherently.
+4.  Data formatting. Any formatting is done prior to analysis but not counted as part of the analysis for measuring computation time.
+
+## Data
+
+```{r, message=FALSE}
+library(geomorph)
+
+# make a latticed cube
+vert <- 8
+template <- expand.grid(1:vert, 1:vert, 1:vert)
+colnames(template) <- c("x", "y", "z")
+
+# Groups
+ng <- 10
+nw <- 10
+group <- factor(rep(1:ng, each = nw))
+n <- length(group)
+
+# add points for n specimens
+
+LMlist <- lapply(seq_len(n), function(.){
+  as.matrix(template + rnorm(length(template),
+                   mean = 0, sd = 0.3))
+})
+
+```
+
+### GPA
+
+```{r}
+LMa <- simplify2array(LMlist)
+GPA <- gpagen(LMa, print.progress = FALSE)
+plot(GPA)
+```
+
+## `RRPP`
+
+```{r}
+Y <- two.d.array(GPA$coords)
+dim(Y)
+
+system.time(
+  {fit1 <- lm.rrpp(Y ~ group, 
+                 iter = 999,
+                 Parallel = 1,
+                 turbo = TRUE);
+  AOV1 <- anova(fit1)}
+)
+AOV1
+```
+
+## `vegan`
+
+```{r, message = FALSE}
+library(vegan)
+D <- dist(Y)
+system.time(AOV2 <- adonis2(D ~ group, permutations = 999, parallel = 1))
+AOV2
+```
+
+## `mvabund`
+
+```{r, message = FALSE}
+library(mvabund)
+system.time({
+  fit3 <- manylm(Y ~ group);
+  AOV3 <- anova(fit3, nBoot = 10)
+})
+AOV3
+
+```
+
+## `PERMANOVA`
+
+```{r, message = FALSE}
+library(PERMANOVA)
+
+D2 <- DistContinuous(Y)
+system.time(AOV4 <- PERMANOVA(D2, group, nperm = 999))
+
+summary(AOV4)
+
+```
+
+## Initial Conclusions
+
+1.  All results are similar. The `mvabund` $F$-statistics are different because they are like the sum of $p$ $F$-statistics rather than a single $F$-statistic calculated from the sum of $p$ $SS$ values.
+2.  `RRPP` and `vegan` are faster than the others.
+3.  It probably is not fair to include `mvabund::anova.manylm` because it perfoms more of a MANOVA analysis, which requires inverting residual covariance matrices.
+4.  Regardless, `PERMANOVA::PERMANOVA` is comparatively much slower.
+
+## Computation time profiles (increasing $n$)
+
+Let's see how the top two functions (in terms of computational efficiency) perform as we increase the amount of data.
+
+```{r}
+
+
+nscape <- seq(10, 50, 10)
+
+Result <- sapply(nscape, function(ng){
+  group <- factor(rep(1:ng, each = nw))
+  n <- length(group)
+  LMlist <- lapply(seq_len(n), function(.){
+    as.matrix(template + 
+                rnorm(length(template),
+                mean = 0, sd = 0.3))
+  })
+  LMa <- simplify2array(LMlist)
+  GPA <- gpagen(LMa, 
+                print.progress = FALSE)
+  Y <- two.d.array(GPA$coords)
+  D <- dist(Y)
+  df <- rrpp.data.frame(group = group,
+                        Y = Y)
+  
+  t_RRPP <- system.time(
+    {fit1 <- lm.rrpp(Y ~ group, 
+                     iter = 999,
+                     Parallel = 1,
+                     turbo = TRUE,
+                     data = df);
+    AOV1 <- anova(fit1)}
+  )[[3]]
+  
+  t_adonis <- system.time(
+    AOV2 <- adonis2(D ~ group,
+                    permutations = 999,
+                    parallel = 1))[[3]]
+  
+  c(n = n, t_RRPP = t_RRPP, 
+    t_adonis = t_adonis)
+  
+})
+
+plot(Result[1, ], Result[3,],
+     type = "o", pch = 16, col = 2,
+     lwd = 2, 
+     xlab = "n", ylab = "Time, s")
+points(Result[1, ], Result[2,], lwd = 2,
+       type = "o", pch = 16, col = 4)
+legend("topleft", c("vegan", "RRPP"),
+       lty = 1, lwd = 2, 
+       pch = 16, col = c(2, 4))
+```
+
+This is not surprising because `vegan::adonis2` uses $n \times n$ distance matrices as data and $n \times n$ hat matrices for estimates. Even though it also uses Hadamard products (element-wise products between squared, centered distance and hat matrices), which are computationally quicker than matrix products, the matrices grow exponentially with a linear increase in $n$. By contrast, `RRPP::lm.rrpp` uses sparse-matrix forms of $\mathbf{Q}$ matrices from $\mathbf{QR}$ decomposition of a linear model design matrix, $\mathbf{X}$ and obtains the matrix product, $\mathbf{Q}^T\mathbf{Y}$. The sum of squared values from this product is the same as the summed squared values from the Hadamard products, but fewer calculations are needed, especially, comparatively, as $n$ increases.
