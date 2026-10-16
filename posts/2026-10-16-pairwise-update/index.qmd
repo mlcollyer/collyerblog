@@ -1,0 +1,101 @@
+---
+title: "How RRPP evolves!"
+subtitle: "An update on the pairwise function"
+author: "Mike Collyer"
+date: "2026-10-16"
+categories: [code, analysis, news]
+---
+
+A follow-up to [this post](<https://mlcollyer.github.io/collyerblog/posts/2026-10-15-How-RRPP-evolves/>)
+
+# Where we left off...
+
+The `getLSmeans` function, used within `pairwise` was updated to have better memoization. Let's see how it works now, after we install the updated version.
+
+```{r, message=FALSE, eval=FALSE}
+pak::pkg_install("mlcollyer/RRPP")
+```
+
+## Data Example
+
+```{r, message=FALSE}
+library(geomorph)
+
+# make a latticed cube
+vert <- 8
+template <- expand.grid(1:vert, 1:vert, 1:vert)
+colnames(template) <- c("x", "y", "z")
+
+# Groups
+ng <- 10
+nw <- 10
+group <- factor(rep(1:ng, each = nw))
+n <- length(group)
+
+# add points for n specimens
+
+LMlist <- lapply(seq_len(n), function(.){
+  as.matrix(template + rnorm(length(template),
+                   mean = 0, sd = 0.3))
+})
+
+```
+
+### GPA
+
+```{r}
+LMa <- simplify2array(LMlist)
+GPA <- gpagen(LMa, print.progress = FALSE)
+plot(GPA)
+```
+
+## RRPP
+
+```{r}
+Y <- two.d.array(GPA$coords)
+dim(Y)
+
+system.time(
+  {fit1 <- lm.rrpp(Y ~ group, 
+                 iter = 999,
+                 Parallel = 1,
+                 turbo = TRUE);
+  AOV1 <- anova(fit1)}
+)
+AOV1
+```
+
+## And now for the moment of truth!
+
+```{r}
+system.time(PW <- pairwise(fit1, 
+                           groups = group))
+
+system.time(S1 <- summary(PW))
+S1
+```
+
+## An improvement of about 2 seconds!
+
+This might not seem profound but it is worth remembering that the `pairwise` function is doing more than calculating means. For example, it is also calculating group variances.
+
+```{r}
+system.time(S2 <- summary(PW, test.type = "var"))
+S2
+```
+
+And vector correlations...
+
+```{r}
+system.time(S3 <- summary(PW, test.type = "VC"))
+S3
+```
+
+And standardized vector distances...
+
+```{r}
+system.time(S4 <- summary(PW, test.type = "stdist"))
+S4
+```
+
+The reason these take practically no time to summarize is because they were all calculated with the initial `pairwise` use. This is why `pairwise` will always take longer than `lm.rrpp`, but as this example shows, it does not mean computational slogs need to be accepted.
