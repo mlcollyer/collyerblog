@@ -1,0 +1,231 @@
+---
+title: "How RRPP evolves?"
+subtitle: "An examination with the pairwise function"
+author: "Mike Collyer"
+date: "2026-10-16"
+categories: [code, analysis, news]
+---
+
+# Conjecture: `RRPP` functions are fast.
+
+Whether one thinks `RRPP` functions are fast depends on one's experience with them. We attempt to make them fast but sometimes, **new data challenges expose computational slogs!** [In the previous post](https://mlcollyer.github.io/collyerblog/posts/2026-10-14-Procrustes-ANOVA-comparisons/), I discovered a computational slog, even though I did not reveal it in the post. As a reminder, here is what I presented:
+
+## Data Example
+
+```{r, message=FALSE}
+library(geomorph)
+
+# make a latticed cube
+vert <- 8
+template <- expand.grid(1:vert, 1:vert, 1:vert)
+colnames(template) <- c("x", "y", "z")
+
+# Groups
+ng <- 10
+nw <- 10
+group <- factor(rep(1:ng, each = nw))
+n <- length(group)
+
+# add points for n specimens
+
+LMlist <- lapply(seq_len(n), function(.){
+  as.matrix(template + rnorm(length(template),
+                   mean = 0, sd = 0.3))
+})
+
+```
+
+### GPA
+
+```{r}
+LMa <- simplify2array(LMlist)
+GPA <- gpagen(LMa, print.progress = FALSE)
+plot(GPA)
+```
+
+## RRPP
+
+```{r}
+Y <- two.d.array(GPA$coords)
+dim(Y)
+
+system.time(
+  {fit1 <- lm.rrpp(Y ~ group, 
+                 iter = 999,
+                 Parallel = 1,
+                 turbo = TRUE);
+  AOV1 <- anova(fit1)}
+)
+AOV1
+```
+
+The exact results are not the same because I did not attempt to control the random seed, but the system time needed to perform the analysis is about the same. What I did not reveal was what would happen if one wanted to perform pairwise comparisons among means. (It was not the intention, but I still felt slimy about it.) That could be accomplished, thusly:
+
+```{r}
+
+system.time(PW <- pairwise(fit1, 
+                groups = group))
+
+summary(PW)
+
+```
+
+#### Awwwww WTF?
+
+To be fair, `pairwise` should be slower than `lm.rrpp`. There are several reasons for this. First, the function does more than obtain coefficients or fitted values, many times. It uses coefficients to estimate attributes (means, slopes) and then calculates (perhaps many) statistics that compare these estimates every permutation. The summary table above reveals that in this case, that means $10 \times 9 / 2 = 45$ statistics, each permutation. Second, ANOVA can benefit from operating in fewer dimensions. For example, the data matrix, $\mathbf{Y}$, is a $100 \times 1,536$ matrix; i.e., high-dimensional data. ANOVA can be performed on a $100 \times 99$ matrix of principal component scores, where the $99$ PC variables encapsulate the same variation as the $1,536$ original variables. What a computational boon! But because the `pairwise` function (at least, currently) uses means and vectors in the original data space. Finally, in this example, we used `turbo = TRUE` in the `lm.rrpp` fit, which skips recording all coefficients in the $1,000$ random permutations. Therefore we asked `paiwise` to recalculate these. What would happen if we change that?
+
+```{r}
+
+system.time(
+  fit1 <- lm.rrpp(Y ~ group, 
+                   iter = 999,
+                   Parallel = 1,
+                   turbo = FALSE,
+                  verbose = TRUE))
+
+```
+
+OK, that made the analysis a few milliseconds slower, so it does not explain the multi-second slog. Additionally, because the coefficients were estimated for the original $1,536$ variables, it casts doubt that the slow down was just because of the data dimensionality.
+
+## What does pairwise do?
+
+Well, it does a lot of things but the one thing it does, consistently, is use the coefficients estimated from `RRPP`-generated data to estimate values that would be needed for statistics. In this example, that means estimating LS means, and then finding distances among means. To demonstrate the principle, let's use the first two principal components of the data so that results are penetrable.
+
+```{r}
+PCA <- ordinate(Y)
+P <- PCA$x[, 1:2]
+fit <- lm.rrpp(P ~ group, 
+               verbose = TRUE, 
+               turbo = FALSE)
+```
+
+Now, for just the observed data, let's consider the following: these two things are the same:
+
+```{r}
+
+(fitted(fit))[1:5,]
+
+X <- model.matrix(fit)
+B <- coef(fit)
+(X %*% B)[1:5,]
+```
+
+Over many iterations, $\mathbf{X}$ will be the same; $\mathbf{B}$ will change. Thus, $\mathbf{X}$ only needs to be estimated once. Also, if there were covariates in the model, their parameter values in $\mathbf{X}$ would be replaced with the mean value rather than their original value, meaning the rows of $\mathbf{X}$ are not unique. In the case that LS means are estimated, a second model matrix could be used on fitted values, $\mathbf{L}$. This model design has no intercept and is simply intended to find means. There is a computational trick for estimating coefficients, found via $\mathbf{QR}$ decomposition,
+
+$$
+\mathbf{L} = \mathbf{QR}.
+$$
+
+Let $\mathbf{H}_{\mathbf{B}} = \left(\mathbf{R}^{-1}\mathbf{Q}\right)^T$. Then,
+
+$$
+\mathbf{B}_{LS} = \mathbf{H}_{\mathbf{B}}\mathbf{\hat{Y}}, 
+$$
+
+where the coefficients are actually LS means, and $\mathbf{\hat{Y}}$ are the fitted values, as found in every RRPP permutation. So, let's make a function that resembles `pairwise`, which obtains LS means for every random permutations (and which takes advantage of the sparse nature of the model matrix).
+
+```{r}
+library(Matrix)
+fast.ginv <- RRPP:::fast.ginv
+fast.solve <- RRPP:::fast.solve
+
+getMeans1 <- function(fit, group){
+  X <- Matrix(model.matrix(fit),
+              sparse = TRUE)
+  Bs <- fit$LM$random.coef
+  k <- length(Bs)
+  Bs <- Bs[[k]]
+  Fitted <- lapply(Bs, 
+                   function(b) X %*% b)
+  L <- model.matrix(~group + 0)
+  QR <- QRforX(L)
+  Hb <- tcrossprod(
+    fast.solve(QR$R), QR$Q)
+  Means <- lapply(Fitted, function(y){
+    Hb %*% y
+  })
+  Means
+}
+```
+
+Now try it.
+
+```{r}
+system.time(M1 <- getMeans1(fit, group))
+
+M1[[1]]
+```
+
+Should be the same as:
+
+```{r}
+aggregate(P ~ group, group, mean)
+```
+
+So for two variables, that was fast! But for the original data?
+
+```{r}
+system.time(M1 <- getMeans1(fit1, group))
+
+```
+
+**This helps to explain some (but not all) of the time slog!** And it is stupid. It lacks ***memoization***. Why? Because even though $\mathbf{X}$ and $\mathbf{L}$ are each only calculated once, they are both used once in each permutation, when their product could be calculated and it used once in each permutation. What the algorithm above does is find each time,
+
+$$
+\mathbf{H}_{\mathbf{B}}(\mathbf{LB}),
+$$
+
+when we could calculate
+
+$$
+(\mathbf{H}_{\mathbf{B}}\mathbf{L})\mathbf{B},
+$$
+
+and $(\mathbf{H}_{\mathbf{B}}\mathbf{L})$ could be calculated once instead of in every permutation. Furthermore, in this case, $\mathbf{H}_{\mathbf{B}}$ is a $10 \times 100$ matrix and $\mathbf{LB}$ is a $100 \times 1,536$ matrix, and the product of these in every random permutation involves many calculations. But $\mathbf{H}_{\mathbf{B}}\mathbf{L}$ is a $10 \times 10$ matrix and $\mathbf{B}$ a $10 \times 1,536$ matrix, so their product in every random permutation would mean fewer calculations. Let's test the veracity of this.
+
+```{r}
+getMeans2 <- function(fit, group){
+  X <- Matrix(model.matrix(fit),
+              sparse = TRUE)
+  Bs <- fit$LM$random.coef
+  k <- length(Bs)
+  Bs <- Bs[[k]]
+  L <- model.matrix(~group + 0)
+  QR <- QRforX(L)
+  Hb <- tcrossprod(
+    fast.solve(QR$R), QR$Q)
+  HL <- Matrix(Hb %*% L, sparse = TRUE)
+  
+  Means <- lapply(Bs, function(b){
+    HL %*% b
+  })
+  Means
+}
+
+system.time(M2 <- getMeans2(fit1, group))
+
+
+
+```
+
+### Much better!
+
+This does not identify and fix all analytical slogs but it helps, immensely. Profiling the `pairwise` function with large data sets like this example will help identify other slow-downs.
+
+## How did this happen in the first place?
+
+Quite simply, it is difficult to identify problems until they surface. For example, if we applied the same two functions to the example with only two PCs of data,
+
+```{r}
+system.time(M1 <- getMeans1(fit, group))
+system.time(M2 <- getMeans2(fit, group))
+
+M1[[2]]
+M2[[2]]
+```
+
+The difference is not profound. The issue was revealed only when data were large enough to reveal it.
+
+# Needless to say...
+
+**some updates will be coming to RRPP soon**

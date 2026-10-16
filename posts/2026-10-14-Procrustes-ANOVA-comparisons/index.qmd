@@ -51,7 +51,7 @@ GPA <- gpagen(LMa, print.progress = FALSE)
 plot(GPA)
 ```
 
-## `RRPP`
+## RRPP
 
 ```{r}
 Y <- two.d.array(GPA$coords)
