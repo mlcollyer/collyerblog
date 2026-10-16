@@ -76,7 +76,8 @@ system.time(S1 <- summary(PW))
 S1
 ```
 
-## An improvement of about 2 seconds!
+## An improvement of about 4 seconds! 
+(i.e., only took 1/3 the previous time)
 
 This might not seem profound but it is worth remembering that the `pairwise` function is doing more than calculating means. For example, it is also calculating group variances.
 
