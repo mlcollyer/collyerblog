@@ -4,6 +4,7 @@ subtitle: "An update on the pairwise function"
 author: "Mike Collyer"
 date: "2026-10-16"
 categories: [code, analysis, news]
+
 ---
 
 A follow-up to [this post](<https://mlcollyer.github.io/collyerblog/posts/2026-10-15-How-RRPP-evolves/>)
