@@ -1,0 +1,120 @@
+---
+title: "Should I adjust my P-values for pairwise comparisons in permutation tests?"
+subtitle: "Also an update for the `pairwise` function"
+author: "Mike Collyer"
+date: "2026-10-17"
+categories: [code, analysis, news]
+image: pie.png
+---
+
+```{r, echo = FALSE}
+png(file = "pie.png")
+par(mfrow = c(1, 2))
+
+pie(c(95, 5), labels = "")
+pie(c(99, 2), labels = "", col = c(0, 2))
+dev.off()
+
+```
+
+# What does it mean to adjust $P$-values?
+
+It is well known that multiple tests using the same significance level $(\alpha)$ will have inflated type I error rates. We can look to the binomial probability distribution to appreciate this. If $\alpha = 0.05$, and one performs, e.g., 10 pairwise tests of mean differences, then the probability of not committing a type I error for any test assuming the probability for any test is $0.05$ is actually $\Pr(X=0) = \binom{10}{0}0.05^{0}0.95^{10} = 0.599$. This means the probability of at least one type I error is $1 - 0.599 = 0.401$. There is a 40% chance of making a type I error in at least one of the tests, assuming a risk of a 5% error rate for each test. This is scary.
+
+## So what to do?
+
+There are generally two ways to approach this and each way has its variants (not discussed in detail here). One (and the one I prefer for reason that will become obvious) is adjust the pairwise level of significance, $\alpha$. For example, one might decide that if the experimentwise $\alpha = 0.05$, then the pairwise $\alpha_{pw} = 0.05/10 = 0.005$. Therefore, one would not reject the null hypothesis that means are equal unless a pairwise test statistic has a threshold of a 0.5% probability of occurrence (equal or greater) in a sampling distribution of the statistic.
+
+The other is to adjust the $P$-value. If the $P$-value for the test is $0.0001$ and there are ten tests performed, then the $P$-value becomes $0.0001 \times 10 = 0.001$ (or $1$, whichever is smaller).
+
+it should be clear that these two procedures are exactly the same concept (called *Bonferroni* correction). Whether shifting $\alpha$ or shifting $P$, they are shifted toward each other, making a test more conservative for rejection of the null hypothesis. (Note the *Bonferroni* correction is very conservative but other methods are less so. Some might even order $P$-values and become progressively more conservative with additional tests.)
+
+## So why has `RRPP` not had an ability to adjust $P$-values with the `pairwise` function?
+
+Actually, a quick announcement, ***starting with version `2.2.1`, the `pairwise` function does have this capability***. But we do not recommend using it. We have reluctantly added it because other `R` functions have it, and we want users to have options, but its use is fraught with potential inferential errors. To demonstrate, let's look at an example with the `Pupfish` data.
+
+```{r}
+library(RRPP)
+Pupfish$Group <- interaction(Pupfish$Sex, Pupfish$Pop)
+system.time(fit1 <- lm.rrpp(coords ~ Group, 
+                           data = Pupfish,
+                           turbo = FALSE,
+                           verbose = TRUE,
+                           Parallel = TRUE,
+                           iter = 49999))
+system.time(PW1 <- pairwise(fit1, 
+                  groups = Pupfish$Group))
+S1 <- summary(PW1, stat.table = FALSE)
+S1$pairwise.tables$P 
+```
+
+The example shows just the $P$-values, to reduce the amount of output printed. This informs us that every group means is significantly different from every other, even if we adjust $\alpha$ to be $\alpha_{pw} = 0.05/6 = 0.008333$.
+
+If we instead adjust the $P$-values, we get the following:
+
+```{r}
+
+S1a <- summary(PW1, stat.table = FALSE,
+               test.type = "stdist",
+              p.adjust.method = "bonferroni")
+S1a$pairwise.tables$P 
+
+```
+
+We still reject every pairwise null hypotheis because all adjusted $P$-values are less than 0.05. But notice that we used $50,000$ permutations, which meant waiting a half-minute for results. If we were not so patient, we might do something like this:
+
+```{r}
+system.time(fit2 <- lm.rrpp(coords ~ Group, 
+                            data = Pupfish,
+                            turbo = FALSE,
+                            verbose = TRUE,
+                            Parallel = TRUE,
+                            iter = 499))
+system.time(PW2 <- pairwise(fit2, 
+                            groups = Pupfish$Group))
+S2a <- summary(PW2, stat.table = FALSE,
+               test.type = "stdist",
+              p.adjust.method = "bonferroni")
+S2a$pairwise.tables$P 
+```
+
+This changes things! (We probably would not use only 500 permutations but it helps to illustrate a point.) We got quick results but they are not the same results.
+
+Now, let's re-summarize the results choosing not to adjust $P$-values but instead adjust the level of significance (confidence).
+
+```{r}
+S2 <- summary(PW2, stat.table = TRUE,
+              test.type = "stdist",
+               p.adjust.method = "none",
+              confidence = 1 - 0.05/6)
+S2
+```
+
+This might not seem that different but regardless of $P$-value, we get to see the upper confidence limit associated with an adjusted $\alpha$. If we do not look at the $P$-values, we see that the $99.167\%$ confidence limits are around a standardized $d\approx 2$. (Yes, these distances should feel like $t$-statistics, as that is what they mimic.) All of the pairwise $d$ statistics are this large or larger. Let's go back to our original $50,000$ permutation example and do the same thing.
+
+```{r}
+S1 <- summary(PW1, stat.table = TRUE,
+              test.type = "stdist",
+              p.adjust.method = "none",
+              confidence = 1 - 0.05/6)
+S1
+```
+
+Note that although the $P$-values are quite different, the upper confidence limits are rather consistent!
+
+## Adjusting $P$-values from permutation tests is stupid!
+
+Actually, it might not be but one must run, many, many permutations to be sure that $P$-values are closer to true values. The problem is that $P$-values from permutation tests are **left-censored**. ***What this means is that a*** $P$***-value that might actually be around*** $0.000000000034645648$ ***can only be as small as*** $0.001$ ***if say,*** $1,000$ ***permutations are used.*** Don't do this! Do not use few permutations and adjust $P$-values!
+
+However, if you adjust $\alpha$ (as we did by adjust confidence), this problem does not exist (or at least is not as extreme)! It informs us how large we would expect a test statistic to be if we adjust $\alpha$, which were fairly consistent for our statistics with varied numbers of permutations. **This is a better way to go about pairwise tests!**
+
+## Other reasons not to adjust $P$-values with RRPP
+
+1.  Are we really performing multiple tests? There are some functions out there that are wrappers for `vegan::adonis`, called something like `pairwise_adonis`, which perform pairwise tests by subsetting data sets that have 3+ groups into as many two-sample data sets as possible, and re-perform a global ANOVA, restricted to two groups of data. In every one of perhaps many unique tests, unique pooled standard errors are calculated. The total number of permutations is equal to $g(g-1)/2 \times \mathcal{P}$ for the $g$ groups compared and $\mathcal{P}$ permutations used. Adjustments of $\alpha$ or $P$-values would be smart in these cases. However, `RRPP` calculates $\mathcal{P}$ matrices of coefficients for $\mathcal{P}$ permutations used, which is used to find $\mathcal{P}$ sets of means, which produce $\mathcal{P}$ matrices of distances between means. If in one permutation, two means converge, they both might diverge from other means, meaning the pairwise mean distances are not independent in each permutation. **The concept for repeating tests and increasing the probability for a type I error is not the same with RRPP!** One can think of this as RRPP producing multiple statistics from the same test instead of performing multiple tests.
+2.  Effect sizes! Whether something is "significant" is mildly interesting. The size of the effect is more compelling, because it allows on to compare how large a standardized difference between means 1 and 2 is versus 5 and 6, for example. The effect sizes are standard deviates $(Z)$ that measure how much greater (or lesser) a statistic is than the expected value from a test where the null hypothesis is true, based on a standard normal sampling distribution. These are simply better than $P$-values.
+3.  One should not give into the tyranny of $P$-values. All the concerns with adjudicating $P$-values that has been written, elsewhere, is true here, as well.
+4.  Other things you could be doing if you do not set up your analysis to use $500,000$ permutations, run on all available processor cores. Or maybe you need a coffee break?
+
+## Concluding remark
+
+If you want to adjust your $P$-values, now you can. We won't stop you. We will no longer impose our dogma. But as this post has shown, adjusting $\alpha$ is smarter, accomplishes the same thing, and provides additional statistics (upper confidence limits) to evaluate.

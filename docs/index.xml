@@ -10,7 +10,392 @@
 <atom:link href="https://www.michaelcollyer.com/index.xml" rel="self" type="application/rss+xml"/>
 <description>Blog of (R) fun (for the Collyer Lab of Evolutionary Morphometrics &amp; Statistics)</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Fri, 16 Oct 2026 04:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 17 Oct 2026 04:00:00 GMT</lastBuildDate>
+<item>
+  <title>Should I adjust my P-values for pairwise comparisons in permutation tests?</title>
+  <dc:creator>Mike Collyer</dc:creator>
+  <link>https://www.michaelcollyer.com/posts/2026-10-17-pairwise-P-values/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>quartz_off_screen 
+                2 </code></pre>
+</div>
+</div>
+<section id="what-does-it-mean-to-adjust-p-values" class="level1">
+<h1>What does it mean to adjust <img src="https://latex.codecogs.com/png.latex?P">-values?</h1>
+<p>It is well known that multiple tests using the same significance level <img src="https://latex.codecogs.com/png.latex?(%5Calpha)"> will have inflated type I error rates. We can look to the binomial probability distribution to appreciate this. If <img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%200.05">, and one performs, e.g., 10 pairwise tests of mean differences, then the probability of not committing a type I error for any test assuming the probability for any test is <img src="https://latex.codecogs.com/png.latex?0.05"> is actually <img src="https://latex.codecogs.com/png.latex?%5CPr(X=0)%20=%20%5Cbinom%7B10%7D%7B0%7D0.05%5E%7B0%7D0.95%5E%7B10%7D%20=%200.599">. This means the probability of at least one type I error is <img src="https://latex.codecogs.com/png.latex?1%20-%200.599%20=%200.401">. There is a 40% chance of making a type I error in at least one of the tests, assuming a risk of a 5% error rate for each test. This is scary.</p>
+<section id="so-what-to-do" class="level2">
+<h2 class="anchored" data-anchor-id="so-what-to-do">So what to do?</h2>
+<p>There are generally two ways to approach this and each way has its variants (not discussed in detail here). One (and the one I prefer for reason that will become obvious) is adjust the pairwise level of significance, <img src="https://latex.codecogs.com/png.latex?%5Calpha">. For example, one might decide that if the experimentwise <img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%200.05">, then the pairwise <img src="https://latex.codecogs.com/png.latex?%5Calpha_%7Bpw%7D%20=%200.05/10%20=%200.005">. Therefore, one would not reject the null hypothesis that means are equal unless a pairwise test statistic has a threshold of a 0.5% probability of occurrence (equal or greater) in a sampling distribution of the statistic.</p>
+<p>The other is to adjust the <img src="https://latex.codecogs.com/png.latex?P">-value. If the <img src="https://latex.codecogs.com/png.latex?P">-value for the test is <img src="https://latex.codecogs.com/png.latex?0.0001"> and there are ten tests performed, then the <img src="https://latex.codecogs.com/png.latex?P">-value becomes <img src="https://latex.codecogs.com/png.latex?0.0001%20%5Ctimes%2010%20=%200.001"> (or <img src="https://latex.codecogs.com/png.latex?1">, whichever is smaller).</p>
+<p>it should be clear that these two procedures are exactly the same concept (called <em>Bonferroni</em> correction). Whether shifting <img src="https://latex.codecogs.com/png.latex?%5Calpha"> or shifting <img src="https://latex.codecogs.com/png.latex?P">, they are shifted toward each other, making a test more conservative for rejection of the null hypothesis. (Note the <em>Bonferroni</em> correction is very conservative but other methods are less so. Some might even order <img src="https://latex.codecogs.com/png.latex?P">-values and become progressively more conservative with additional tests.)</p>
+</section>
+<section id="so-why-has-rrpp-not-had-an-ability-to-adjust-p-values-with-the-pairwise-function" class="level2">
+<h2 class="anchored" data-anchor-id="so-why-has-rrpp-not-had-an-ability-to-adjust-p-values-with-the-pairwise-function">So why has <code>RRPP</code> not had an ability to adjust <img src="https://latex.codecogs.com/png.latex?P">-values with the <code>pairwise</code> function?</h2>
+<p>Actually, a quick announcement, <strong><em>starting with version <code>2.2.1</code>, the <code>pairwise</code> function does have this capability</em></strong>. But we do not recommend using it. We have reluctantly added it because other <code>R</code> functions have it, and we want users to have options, but its use is fraught with potential inferential errors. To demonstrate, let’s look at an example with the <code>Pupfish</code> data.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(RRPP)</span>
+<span id="cb2-2">Pupfish<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Group <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">interaction</span>(Pupfish<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Sex, Pupfish<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Pop)</span>
+<span id="cb2-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">system.time</span>(fit1 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lm.rrpp</span>(coords <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> Group, </span>
+<span id="cb2-4">                           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> Pupfish,</span>
+<span id="cb2-5">                           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">turbo =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>,</span>
+<span id="cb2-6">                           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">verbose =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb2-7">                           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Parallel =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb2-8">                           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">iter =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">49999</span>))</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   user  system elapsed 
+ 21.701  16.978  17.211 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">system.time</span>(PW1 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pairwise</span>(fit1, </span>
+<span id="cb4-2">                  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">groups =</span> Pupfish<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Group))</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   user  system elapsed 
+  7.014   0.073   7.105 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">S1 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(PW1, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span>
+<span id="cb6-2">S1<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pairwise.tables<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>P </span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           F.Marsh M.Marsh F.Sinkhole M.Sinkhole
+F.Marsh      1e+00 0.00002    0.00008    0.00002
+M.Marsh      2e-05 1.00000    0.00002    0.00154
+F.Sinkhole   8e-05 0.00002    1.00000    0.00496
+M.Sinkhole   2e-05 0.00154    0.00496    1.00000</code></pre>
+</div>
+</div>
+<p>The example shows just the <img src="https://latex.codecogs.com/png.latex?P">-values, to reduce the amount of output printed. This informs us that every group means is significantly different from every other, even if we adjust <img src="https://latex.codecogs.com/png.latex?%5Calpha"> to be <img src="https://latex.codecogs.com/png.latex?%5Calpha_%7Bpw%7D%20=%200.05/6%20=%200.008333">.</p>
+<p>If we instead adjust the <img src="https://latex.codecogs.com/png.latex?P">-values, we get the following:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">S1a <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(PW1, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>,</span>
+<span id="cb8-2">               <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stdist"</span>,</span>
+<span id="cb8-3">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bonferroni"</span>)</span>
+<span id="cb8-4">S1a<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pairwise.tables<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>P </span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           F.Marsh M.Marsh F.Sinkhole M.Sinkhole
+F.Marsh    1.00000 0.00012    0.00012    0.00012
+M.Marsh    0.00012 1.00000    0.00012    0.00024
+F.Sinkhole 0.00012 0.00012    1.00000    0.00036
+M.Sinkhole 0.00012 0.00024    0.00036    1.00000</code></pre>
+</div>
+</div>
+<p>We still reject every pairwise null hypotheis because all adjusted <img src="https://latex.codecogs.com/png.latex?P">-values are less than 0.05. But notice that we used <img src="https://latex.codecogs.com/png.latex?50,000"> permutations, which meant waiting a half-minute for results. If we were not so patient, we might do something like this:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">system.time</span>(fit2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lm.rrpp</span>(coords <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> Group, </span>
+<span id="cb10-2">                            <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> Pupfish,</span>
+<span id="cb10-3">                            <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">turbo =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>,</span>
+<span id="cb10-4">                            <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">verbose =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb10-5">                            <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Parallel =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb10-6">                            <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">iter =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">499</span>))</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   user  system elapsed 
+  0.167   0.236   0.197 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">system.time</span>(PW2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pairwise</span>(fit2, </span>
+<span id="cb12-2">                            <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">groups =</span> Pupfish<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Group))</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   user  system elapsed 
+  0.062   0.003   0.065 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">S2a <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(PW2, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>,</span>
+<span id="cb14-2">               <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stdist"</span>,</span>
+<span id="cb14-3">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bonferroni"</span>)</span>
+<span id="cb14-4">S2a<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>pairwise.tables<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>P </span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>           F.Marsh M.Marsh F.Sinkhole M.Sinkhole
+F.Marsh      1.000   0.012      0.012      0.012
+M.Marsh      0.012   1.000      0.012      0.012
+F.Sinkhole   0.012   0.012      1.000      0.012
+M.Sinkhole   0.012   0.012      0.012      1.000</code></pre>
+</div>
+</div>
+<p>This changes things! (We probably would not use only 500 permutations but it helps to illustrate a point.) We got quick results but they are not the same results.</p>
+<p>Now, let’s re-summarize the results choosing not to adjust <img src="https://latex.codecogs.com/png.latex?P">-values but instead adjust the level of significance (confidence).</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1">S2 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(PW2, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb16-2">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stdist"</span>,</span>
+<span id="cb16-3">               <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"none"</span>,</span>
+<span id="cb16-4">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">confidence =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.05</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>)</span>
+<span id="cb16-5">S2</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Pairwise comparisons
+
+Groups: F.Marsh M.Marsh F.Sinkhole M.Sinkhole 
+
+RRPP: 500 permutations
+
+LS means:
+Vectors hidden (use show.vectors = TRUE to view)
+
+Pairwise standardized distances between means, plus statistics
+P-values adjustment: none 
+                             d UCL (99.1666666666667%)        Z Pr &gt; d
+F.Marsh:M.Marsh       5.221816                1.801562 5.563939  0.002
+F.Marsh:F.Sinkhole    3.656449                2.106903 3.671787  0.002
+F.Marsh:M.Sinkhole    4.395133                1.987001 4.364833  0.002
+M.Marsh:F.Sinkhole    4.863848                1.815198 5.313275  0.002
+M.Marsh:M.Sinkhole    3.020484                1.888204 3.838870  0.002
+F.Sinkhole:M.Sinkhole 2.712760                1.997251 3.030542  0.002</code></pre>
+</div>
+</div>
+<p>This might not seem that different but regardless of <img src="https://latex.codecogs.com/png.latex?P">-value, we get to see the upper confidence limit associated with an adjusted <img src="https://latex.codecogs.com/png.latex?%5Calpha">. If we do not look at the <img src="https://latex.codecogs.com/png.latex?P">-values, we see that the <img src="https://latex.codecogs.com/png.latex?99.167%5C%25"> confidence limits are around a standardized <img src="https://latex.codecogs.com/png.latex?d%5Capprox%202">. (Yes, these distances should feel like <img src="https://latex.codecogs.com/png.latex?t">-statistics, as that is what they mimic.) All of the pairwise <img src="https://latex.codecogs.com/png.latex?d"> statistics are this large or larger. Let’s go back to our original <img src="https://latex.codecogs.com/png.latex?50,000"> permutation example and do the same thing.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">S1 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(PW1, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb18-2">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stdist"</span>,</span>
+<span id="cb18-3">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"none"</span>,</span>
+<span id="cb18-4">              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">confidence =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.05</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>)</span>
+<span id="cb18-5">S1</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Pairwise comparisons
+
+Groups: F.Marsh M.Marsh F.Sinkhole M.Sinkhole 
+
+RRPP: 50000 permutations
+
+LS means:
+Vectors hidden (use show.vectors = TRUE to view)
+
+Pairwise standardized distances between means, plus statistics
+P-values adjustment: none 
+                             d UCL (99.1666666666667%)        Z Pr &gt; d
+F.Marsh:M.Marsh       5.221816                1.945945 4.824779  2e-05
+F.Marsh:F.Sinkhole    3.656449                1.932530 3.993549  2e-05
+F.Marsh:M.Sinkhole    4.395133                1.936772 4.447712  2e-05
+M.Marsh:F.Sinkhole    4.863848                1.957504 4.622671  2e-05
+M.Marsh:M.Sinkhole    3.020484                1.948717 3.429291  4e-05
+F.Sinkhole:M.Sinkhole 2.712760                1.938311 3.193975  6e-05</code></pre>
+</div>
+</div>
+<p>Note that although the <img src="https://latex.codecogs.com/png.latex?P">-values are quite different, the upper confidence limits are rather consistent!</p>
+</section>
+<section id="adjusting-p-values-from-permutation-tests-is-stupid" class="level2">
+<h2 class="anchored" data-anchor-id="adjusting-p-values-from-permutation-tests-is-stupid">Adjusting <img src="https://latex.codecogs.com/png.latex?P">-values from permutation tests is stupid!</h2>
+<p>Actually, it might not be but one must run, many, many permutations to be sure that <img src="https://latex.codecogs.com/png.latex?P">-values are closer to true values. The problem is that <img src="https://latex.codecogs.com/png.latex?P">-values from permutation tests are <strong>left-censored</strong>. <strong><em>What this means is that a</em></strong> <img src="https://latex.codecogs.com/png.latex?P"><strong><em>-value that might actually be around</em></strong> <img src="https://latex.codecogs.com/png.latex?0.000000000034645648"> <strong><em>can only be as small as</em></strong> <img src="https://latex.codecogs.com/png.latex?0.001"> <strong><em>if say,</em></strong> <img src="https://latex.codecogs.com/png.latex?1,000"> <strong><em>permutations are used.</em></strong> Don’t do this! Do not use few permutations and adjust <img src="https://latex.codecogs.com/png.latex?P">-values!</p>
+<p>However, if you adjust <img src="https://latex.codecogs.com/png.latex?%5Calpha"> (as we did by adjust confidence), this problem does not exist (or at least is not as extreme)! It informs us how large we would expect a test statistic to be if we adjust <img src="https://latex.codecogs.com/png.latex?%5Calpha">, which were fairly consistent for our statistics with varied numbers of permutations. <strong>This is a better way to go about pairwise tests!</strong></p>
+</section>
+<section id="other-reasons-not-to-adjust-p-values-with-rrpp" class="level2">
+<h2 class="anchored" data-anchor-id="other-reasons-not-to-adjust-p-values-with-rrpp">Other reasons not to adjust <img src="https://latex.codecogs.com/png.latex?P">-values with RRPP</h2>
+<ol type="1">
+<li>Are we really performing multiple tests? There are some functions out there that are wrappers for <code>vegan::adonis</code>, called something like <code>pairwise_adonis</code>, which perform pairwise tests by subsetting data sets that have 3+ groups into as many two-sample data sets as possible, and re-perform a global ANOVA, restricted to two groups of data. In every one of perhaps many unique tests, unique pooled standard errors are calculated. The total number of permutations is equal to <img src="https://latex.codecogs.com/png.latex?g(g-1)/2%20%5Ctimes%20%5Cmathcal%7BP%7D"> for the <img src="https://latex.codecogs.com/png.latex?g"> groups compared and <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D"> permutations used. Adjustments of <img src="https://latex.codecogs.com/png.latex?%5Calpha"> or <img src="https://latex.codecogs.com/png.latex?P">-values would be smart in these cases. However, <code>RRPP</code> calculates <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D"> matrices of coefficients for <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D"> permutations used, which is used to find <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D"> sets of means, which produce <img src="https://latex.codecogs.com/png.latex?%5Cmathcal%7BP%7D"> matrices of distances between means. If in one permutation, two means converge, they both might diverge from other means, meaning the pairwise mean distances are not independent in each permutation. <strong>The concept for repeating tests and increasing the probability for a type I error is not the same with RRPP!</strong> One can think of this as RRPP producing multiple statistics from the same test instead of performing multiple tests.</li>
+<li>Effect sizes! Whether something is “significant” is mildly interesting. The size of the effect is more compelling, because it allows on to compare how large a standardized difference between means 1 and 2 is versus 5 and 6, for example. The effect sizes are standard deviates <img src="https://latex.codecogs.com/png.latex?(Z)"> that measure how much greater (or lesser) a statistic is than the expected value from a test where the null hypothesis is true, based on a standard normal sampling distribution. These are simply better than <img src="https://latex.codecogs.com/png.latex?P">-values.</li>
+<li>One should not give into the tyranny of <img src="https://latex.codecogs.com/png.latex?P">-values. All the concerns with adjudicating <img src="https://latex.codecogs.com/png.latex?P">-values that has been written, elsewhere, is true here, as well.</li>
+<li>Other things you could be doing if you do not set up your analysis to use <img src="https://latex.codecogs.com/png.latex?500,000"> permutations, run on all available processor cores. Or maybe you need a coffee break?</li>
+</ol>
+</section>
+<section id="concluding-remark" class="level2">
+<h2 class="anchored" data-anchor-id="concluding-remark">Concluding remark</h2>
+<p>If you want to adjust your <img src="https://latex.codecogs.com/png.latex?P">-values, now you can. We won’t stop you. We will no longer impose our dogma. But as this post has shown, adjusting <img src="https://latex.codecogs.com/png.latex?%5Calpha"> is smarter, accomplishes the same thing, and provides additional statistics (upper confidence limits) to evaluate.</p>
+
+
+</section>
+</section>
+
+ ]]></description>
+  <category>code</category>
+  <category>analysis</category>
+  <category>news</category>
+  <guid>https://www.michaelcollyer.com/posts/2026-10-17-pairwise-P-values/</guid>
+  <pubDate>Sat, 17 Oct 2026 04:00:00 GMT</pubDate>
+  <media:content url="https://www.michaelcollyer.com/posts/2026-10-17-pairwise-P-values/pie.png" medium="image" type="image/png" height="144" width="144"/>
+</item>
 <item>
   <title>How RRPP evolves?</title>
   <dc:creator>Mike Collyer</dc:creator>
