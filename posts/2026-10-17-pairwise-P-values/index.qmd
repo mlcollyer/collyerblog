@@ -7,16 +7,6 @@ categories: [code, analysis, news]
 image: pie.png
 ---
 
-```{r, echo = FALSE}
-png(file = "pie.png")
-par(mfrow = c(1, 2))
-
-pie(c(95, 5), labels = "")
-pie(c(99, 2), labels = "", col = c(0, 2))
-dev.off()
-
-```
-
 # What does it mean to adjust $P$-values?
 
 It is well known that multiple tests using the same significance level $(\alpha)$ will have inflated type I error rates. We can look to the binomial probability distribution to appreciate this. If $\alpha = 0.05$, and one performs, e.g., 10 pairwise tests of mean differences, then the probability of not committing a type I error for any test assuming the probability for any test is $0.05$ is actually $\Pr(X=0) = \binom{10}{0}0.05^{0}0.95^{10} = 0.599$. This means the probability of at least one type I error is $1 - 0.599 = 0.401$. There is a 40% chance of making a type I error in at least one of the tests, assuming a risk of a 5% error rate for each test. This is scary.

@@ -21,12 +21,6 @@
 
 
 
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>quartz_off_screen 
-                2 </code></pre>
-</div>
-</div>
 <section id="what-does-it-mean-to-adjust-p-values" class="level1">
 <h1>What does it mean to adjust <img src="https://latex.codecogs.com/png.latex?P">-values?</h1>
 <p>It is well known that multiple tests using the same significance level <img src="https://latex.codecogs.com/png.latex?(%5Calpha)"> will have inflated type I error rates. We can look to the binomial probability distribution to appreciate this. If <img src="https://latex.codecogs.com/png.latex?%5Calpha%20=%200.05">, and one performs, e.g., 10 pairwise tests of mean differences, then the probability of not committing a type I error for any test assuming the probability for any test is <img src="https://latex.codecogs.com/png.latex?0.05"> is actually <img src="https://latex.codecogs.com/png.latex?%5CPr(X=0)%20=%20%5Cbinom%7B10%7D%7B0%7D0.05%5E%7B0%7D0.95%5E%7B10%7D%20=%200.599">. This means the probability of at least one type I error is <img src="https://latex.codecogs.com/png.latex?1%20-%200.599%20=%200.401">. There is a 40% chance of making a type I error in at least one of the tests, assuming a risk of a 5% error rate for each test. This is scary.</p>
@@ -40,10 +34,10 @@
 <h2 class="anchored" data-anchor-id="so-why-has-rrpp-not-had-an-ability-to-adjust-p-values-with-the-pairwise-function">So why has <code>RRPP</code> not had an ability to adjust <img src="https://latex.codecogs.com/png.latex?P">-values with the <code>pairwise</code> function?</h2>
 <p>Actually, a quick announcement, <strong><em>starting with version <code>2.2.1</code>, the <code>pairwise</code> function does have this capability</em></strong>. But we do not recommend using it. We have reluctantly added it because other <code>R</code> functions have it, and we want users to have options, but its use is fraught with potential inferential errors. To demonstrate, let’s look at an example with the <code>Pupfish</code> data.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">library</span>(RRPP)</span>
-<span id="cb2-2">Pupfish<span class="sc" style="color: #5E5E5E;
+<span id="cb1-2">Pupfish<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>Group <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -54,7 +48,7 @@ background-color: null;
 font-style: inherit;">$</span>Sex, Pupfish<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>Pop)</span>
-<span id="cb2-3"><span class="fu" style="color: #4758AB;
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">system.time</span>(fit1 <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -63,50 +57,50 @@ background-color: null;
 font-style: inherit;">lm.rrpp</span>(coords <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> Group, </span>
-<span id="cb2-4">                           <span class="at" style="color: #657422;
+<span id="cb1-4">                           <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">data =</span> Pupfish,</span>
-<span id="cb2-5">                           <span class="at" style="color: #657422;
+<span id="cb1-5">                           <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">turbo =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>,</span>
-<span id="cb2-6">                           <span class="at" style="color: #657422;
+<span id="cb1-6">                           <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">verbose =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb2-7">                           <span class="at" style="color: #657422;
+<span id="cb1-7">                           <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">Parallel =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb2-8">                           <span class="at" style="color: #657422;
+<span id="cb1-8">                           <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">iter =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">49999</span>))</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
- 21.701  16.978  17.211 </code></pre>
+ 22.299  24.504  14.972 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">system.time</span>(PW1 <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">pairwise</span>(fit1, </span>
-<span id="cb4-2">                  <span class="at" style="color: #657422;
+<span id="cb3-2">                  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">groups =</span> Pupfish<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>Group))</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  7.014   0.073   7.105 </code></pre>
+  6.935   0.064   7.022 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">S1 <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">S1 <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -115,7 +109,7 @@ background-color: null;
 font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>)</span>
-<span id="cb6-2">S1<span class="sc" style="color: #5E5E5E;
+<span id="cb5-2">S1<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>pairwise.tables<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -131,7 +125,7 @@ M.Sinkhole   2e-05 0.00154    0.00496    1.00000</code></pre>
 <p>The example shows just the <img src="https://latex.codecogs.com/png.latex?P">-values, to reduce the amount of output printed. This informs us that every group means is significantly different from every other, even if we adjust <img src="https://latex.codecogs.com/png.latex?%5Calpha"> to be <img src="https://latex.codecogs.com/png.latex?%5Calpha_%7Bpw%7D%20=%200.05/6%20=%200.008333">.</p>
 <p>If we instead adjust the <img src="https://latex.codecogs.com/png.latex?P">-values, we get the following:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">S1a <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">S1a <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -140,17 +134,17 @@ background-color: null;
 font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>,</span>
-<span id="cb8-2">               <span class="at" style="color: #657422;
+<span id="cb7-2">               <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"stdist"</span>,</span>
-<span id="cb8-3">              <span class="at" style="color: #657422;
+<span id="cb7-3">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"bonferroni"</span>)</span>
-<span id="cb8-4">S1a<span class="sc" style="color: #5E5E5E;
+<span id="cb7-4">S1a<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>pairwise.tables<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -165,7 +159,7 @@ M.Sinkhole 0.00012 0.00024    0.00036    1.00000</code></pre>
 </div>
 <p>We still reject every pairwise null hypotheis because all adjusted <img src="https://latex.codecogs.com/png.latex?P">-values are less than 0.05. But notice that we used <img src="https://latex.codecogs.com/png.latex?50,000"> permutations, which meant waiting a half-minute for results. If we were not so patient, we might do something like this:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">system.time</span>(fit2 <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -174,50 +168,50 @@ background-color: null;
 font-style: inherit;">lm.rrpp</span>(coords <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> Group, </span>
-<span id="cb10-2">                            <span class="at" style="color: #657422;
+<span id="cb9-2">                            <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">data =</span> Pupfish,</span>
-<span id="cb10-3">                            <span class="at" style="color: #657422;
+<span id="cb9-3">                            <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">turbo =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>,</span>
-<span id="cb10-4">                            <span class="at" style="color: #657422;
+<span id="cb9-4">                            <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">verbose =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb10-5">                            <span class="at" style="color: #657422;
+<span id="cb9-5">                            <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">Parallel =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb10-6">                            <span class="at" style="color: #657422;
+<span id="cb9-6">                            <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">iter =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">499</span>))</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  0.167   0.236   0.197 </code></pre>
+  0.164   0.214   0.191 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">system.time</span>(PW2 <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">pairwise</span>(fit2, </span>
-<span id="cb12-2">                            <span class="at" style="color: #657422;
+<span id="cb11-2">                            <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">groups =</span> Pupfish<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>Group))</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  0.062   0.003   0.065 </code></pre>
+  0.065   0.005   0.071 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">S2a <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">S2a <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -226,17 +220,17 @@ background-color: null;
 font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>,</span>
-<span id="cb14-2">               <span class="at" style="color: #657422;
+<span id="cb13-2">               <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"stdist"</span>,</span>
-<span id="cb14-3">              <span class="at" style="color: #657422;
+<span id="cb13-3">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"bonferroni"</span>)</span>
-<span id="cb14-4">S2a<span class="sc" style="color: #5E5E5E;
+<span id="cb13-4">S2a<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>pairwise.tables<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -252,7 +246,7 @@ M.Sinkhole   0.012   0.012      0.012      1.000</code></pre>
 <p>This changes things! (We probably would not use only 500 permutations but it helps to illustrate a point.) We got quick results but they are not the same results.</p>
 <p>Now, let’s re-summarize the results choosing not to adjust <img src="https://latex.codecogs.com/png.latex?P">-values but instead adjust the level of significance (confidence).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1">S2 <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1">S2 <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -261,17 +255,17 @@ background-color: null;
 font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb16-2">              <span class="at" style="color: #657422;
+<span id="cb15-2">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"stdist"</span>,</span>
-<span id="cb16-3">               <span class="at" style="color: #657422;
+<span id="cb15-3">               <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"none"</span>,</span>
-<span id="cb16-4">              <span class="at" style="color: #657422;
+<span id="cb15-4">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">confidence =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
@@ -284,7 +278,7 @@ background-color: null;
 font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">6</span>)</span>
-<span id="cb16-5">S2</span></code></pre></div></div>
+<span id="cb15-5">S2</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Pairwise comparisons
@@ -309,7 +303,7 @@ F.Sinkhole:M.Sinkhole 2.712760                1.997251 3.030542  0.002</code></p
 </div>
 <p>This might not seem that different but regardless of <img src="https://latex.codecogs.com/png.latex?P">-value, we get to see the upper confidence limit associated with an adjusted <img src="https://latex.codecogs.com/png.latex?%5Calpha">. If we do not look at the <img src="https://latex.codecogs.com/png.latex?P">-values, we see that the <img src="https://latex.codecogs.com/png.latex?99.167%5C%25"> confidence limits are around a standardized <img src="https://latex.codecogs.com/png.latex?d%5Capprox%202">. (Yes, these distances should feel like <img src="https://latex.codecogs.com/png.latex?t">-statistics, as that is what they mimic.) All of the pairwise <img src="https://latex.codecogs.com/png.latex?d"> statistics are this large or larger. Let’s go back to our original <img src="https://latex.codecogs.com/png.latex?50,000"> permutation example and do the same thing.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">S1 <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1">S1 <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -318,17 +312,17 @@ background-color: null;
 font-style: inherit;">stat.table =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb18-2">              <span class="at" style="color: #657422;
+<span id="cb17-2">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">test.type =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"stdist"</span>,</span>
-<span id="cb18-3">              <span class="at" style="color: #657422;
+<span id="cb17-3">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">p.adjust.method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"none"</span>,</span>
-<span id="cb18-4">              <span class="at" style="color: #657422;
+<span id="cb17-4">              <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">confidence =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
@@ -341,7 +335,7 @@ background-color: null;
 font-style: inherit;">/</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">6</span>)</span>
-<span id="cb18-5">S1</span></code></pre></div></div>
+<span id="cb17-5">S1</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Pairwise comparisons

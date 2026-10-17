@@ -232,12 +232,6 @@ window.Quarto = {
 
 
 
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>quartz_off_screen 
-                2 </code></pre>
-</div>
-</div>
 <section id="what-does-it-mean-to-adjust-p-values" class="level1">
 <h1>What does it mean to adjust <span class="math inline">\(P\)</span>-values?</h1>
 <p>It is well known that multiple tests using the same significance level <span class="math inline">\((\alpha)\)</span> will have inflated type I error rates. We can look to the binomial probability distribution to appreciate this. If <span class="math inline">\(\alpha = 0.05\)</span>, and one performs, e.g., 10 pairwise tests of mean differences, then the probability of not committing a type I error for any test assuming the probability for any test is <span class="math inline">\(0.05\)</span> is actually <span class="math inline">\(\Pr(X=0) = \binom{10}{0}0.05^{0}0.95^{10} = 0.599\)</span>. This means the probability of at least one type I error is <span class="math inline">\(1 - 0.599 = 0.401\)</span>. There is a 40% chance of making a type I error in at least one of the tests, assuming a risk of a 5% error rate for each test. This is scary.</p>
@@ -251,26 +245,26 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="so-why-has-rrpp-not-had-an-ability-to-adjust-p-values-with-the-pairwise-function">So why has <code>RRPP</code> not had an ability to adjust <span class="math inline">\(P\)</span>-values with the <code>pairwise</code> function?</h2>
 <p>Actually, a quick announcement, <strong><em>starting with version <code>2.2.1</code>, the <code>pairwise</code> function does have this capability</em></strong>. But we do not recommend using it. We have reluctantly added it because other <code>R</code> functions have it, and we want users to have options, but its use is fraught with potential inferential errors. To demonstrate, let’s look at an example with the <code>Pupfish</code> data.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RRPP)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>Pupfish<span class="sc">$</span>Group <span class="ot">&lt;-</span> <span class="fu">interaction</span>(Pupfish<span class="sc">$</span>Sex, Pupfish<span class="sc">$</span>Pop)</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(fit1 <span class="ot">&lt;-</span> <span class="fu">lm.rrpp</span>(coords <span class="sc">~</span> Group, </span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">data =</span> Pupfish,</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">turbo =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">verbose =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">Parallel =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">iter =</span> <span class="dv">49999</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RRPP)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>Pupfish<span class="sc">$</span>Group <span class="ot">&lt;-</span> <span class="fu">interaction</span>(Pupfish<span class="sc">$</span>Sex, Pupfish<span class="sc">$</span>Pop)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(fit1 <span class="ot">&lt;-</span> <span class="fu">lm.rrpp</span>(coords <span class="sc">~</span> Group, </span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>                           <span class="at">data =</span> Pupfish,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                           <span class="at">turbo =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>                           <span class="at">verbose =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>                           <span class="at">Parallel =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">iter =</span> <span class="dv">49999</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
- 21.701  16.978  17.211 </code></pre>
+ 22.299  24.504  14.972 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(PW1 <span class="ot">&lt;-</span> <span class="fu">pairwise</span>(fit1, </span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">groups =</span> Pupfish<span class="sc">$</span>Group))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(PW1 <span class="ot">&lt;-</span> <span class="fu">pairwise</span>(fit1, </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">groups =</span> Pupfish<span class="sc">$</span>Group))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  7.014   0.073   7.105 </code></pre>
+  6.935   0.064   7.022 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>S1<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>S1<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           F.Marsh M.Marsh F.Sinkhole M.Sinkhole
 F.Marsh      1e+00 0.00002    0.00008    0.00002
@@ -282,10 +276,10 @@ M.Sinkhole   2e-05 0.00154    0.00496    1.00000</code></pre>
 <p>The example shows just the <span class="math inline">\(P\)</span>-values, to reduce the amount of output printed. This informs us that every group means is significantly different from every other, even if we adjust <span class="math inline">\(\alpha\)</span> to be <span class="math inline">\(\alpha_{pw} = 0.05/6 = 0.008333\)</span>.</p>
 <p>If we instead adjust the <span class="math inline">\(P\)</span>-values, we get the following:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>S1a <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">p.adjust.method =</span> <span class="st">"bonferroni"</span>)</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>S1a<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>S1a <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">p.adjust.method =</span> <span class="st">"bonferroni"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>S1a<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           F.Marsh M.Marsh F.Sinkhole M.Sinkhole
 F.Marsh    1.00000 0.00012    0.00012    0.00012
@@ -296,26 +290,26 @@ M.Sinkhole 0.00012 0.00024    0.00036    1.00000</code></pre>
 </div>
 <p>We still reject every pairwise null hypotheis because all adjusted <span class="math inline">\(P\)</span>-values are less than 0.05. But notice that we used <span class="math inline">\(50,000\)</span> permutations, which meant waiting a half-minute for results. If we were not so patient, we might do something like this:</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(fit2 <span class="ot">&lt;-</span> <span class="fu">lm.rrpp</span>(coords <span class="sc">~</span> Group, </span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">data =</span> Pupfish,</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">turbo =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">verbose =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">Parallel =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">iter =</span> <span class="dv">499</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(fit2 <span class="ot">&lt;-</span> <span class="fu">lm.rrpp</span>(coords <span class="sc">~</span> Group, </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">data =</span> Pupfish,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">turbo =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">verbose =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">Parallel =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">iter =</span> <span class="dv">499</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  0.167   0.236   0.197 </code></pre>
+  0.164   0.214   0.191 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(PW2 <span class="ot">&lt;-</span> <span class="fu">pairwise</span>(fit2, </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">groups =</span> Pupfish<span class="sc">$</span>Group))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(PW2 <span class="ot">&lt;-</span> <span class="fu">pairwise</span>(fit2, </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">groups =</span> Pupfish<span class="sc">$</span>Group))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  0.062   0.003   0.065 </code></pre>
+  0.065   0.005   0.071 </code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>S2a <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW2, <span class="at">stat.table =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">p.adjust.method =</span> <span class="st">"bonferroni"</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>S2a<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>S2a <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW2, <span class="at">stat.table =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">p.adjust.method =</span> <span class="st">"bonferroni"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>S2a<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>           F.Marsh M.Marsh F.Sinkhole M.Sinkhole
 F.Marsh      1.000   0.012      0.012      0.012
@@ -327,11 +321,11 @@ M.Sinkhole   0.012   0.012      0.012      1.000</code></pre>
 <p>This changes things! (We probably would not use only 500 permutations but it helps to illustrate a point.) We got quick results but they are not the same results.</p>
 <p>Now, let’s re-summarize the results choosing not to adjust <span class="math inline">\(P\)</span>-values but instead adjust the level of significance (confidence).</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW2, <span class="at">stat.table =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">p.adjust.method =</span> <span class="st">"none"</span>,</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">confidence =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.05</span><span class="sc">/</span><span class="dv">6</span>)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>S2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>S2 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW2, <span class="at">stat.table =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">p.adjust.method =</span> <span class="st">"none"</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">confidence =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.05</span><span class="sc">/</span><span class="dv">6</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>S2</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Pairwise comparisons
@@ -356,11 +350,11 @@ F.Sinkhole:M.Sinkhole 2.712760                1.997251 3.030542  0.002</code></p
 </div>
 <p>This might not seem that different but regardless of <span class="math inline">\(P\)</span>-value, we get to see the upper confidence limit associated with an adjusted <span class="math inline">\(\alpha\)</span>. If we do not look at the <span class="math inline">\(P\)</span>-values, we see that the <span class="math inline">\(99.167\%\)</span> confidence limits are around a standardized <span class="math inline">\(d\approx 2\)</span>. (Yes, these distances should feel like <span class="math inline">\(t\)</span>-statistics, as that is what they mimic.) All of the pairwise <span class="math inline">\(d\)</span> statistics are this large or larger. Let’s go back to our original <span class="math inline">\(50,000\)</span> permutation example and do the same thing.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">p.adjust.method =</span> <span class="st">"none"</span>,</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">confidence =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.05</span><span class="sc">/</span><span class="dv">6</span>)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>S1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>              <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>              <span class="at">p.adjust.method =</span> <span class="st">"none"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>              <span class="at">confidence =</span> <span class="dv">1</span> <span class="sc">-</span> <span class="fl">0.05</span><span class="sc">/</span><span class="dv">6</span>)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>S1</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Pairwise comparisons
