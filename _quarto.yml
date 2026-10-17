@@ -24,3 +24,12 @@ format:
 
 editor: visual
 
+comments:
+  giscus:
+    repo: mlcollyer/collyerblog/
+    repo-id: R_kgDO...
+    category: Announcements
+    category-id: DIC_kwDO...
+    mapping: pathname
+    reactions-enabled: true
+    loading: lazy
