@@ -3,7 +3,7 @@ title: "How should I go about interpretting extended PGLS results for Species ef
 subtitle: "What is up with the weighting parameters?"
 author: "Mike Collyer"
 date: "2026-11-06"
-categories: [analysis, insight, code, opinion, gemorph]
+categories: [analysis, insight, code, opinion, geomorph]
 bibliography:
   - 2024.bib
 csl: methods-in-ecology-and-evolution.csl
