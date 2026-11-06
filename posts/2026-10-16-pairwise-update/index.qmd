@@ -1,9 +1,9 @@
 ---
-title: "How RRPP evolves!"
-subtitle: "An update on the pairwise function"
+title: "How `RRPP` evolves!"
+subtitle: "An update on the `pairwise` function"
 author: "Mike Collyer"
 date: "2026-10-16"
-categories: [code, analysis, news]
+categories: [code, analysis, news, RRPP]
 
 ---
 

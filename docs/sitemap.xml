@@ -1,35 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.michaelcollyer.com/about.html</loc>
-    <lastmod>2026-10-11T15:04:19.676Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.michaelcollyer.com/archive.html</loc>
-    <lastmod>2026-10-12T22:23:24.200Z</lastmod>
+    <loc>https://www.michaelcollyer.com/index.html</loc>
+    <lastmod>2026-10-11T14:57:24.671Z</lastmod>
   </url>
   <url>
     <loc>https://www.michaelcollyer.com/posts/2026-10-17-pairwise-P-values/index.html</loc>
-    <lastmod>2026-10-17T20:05:13.316Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.michaelcollyer.com/posts/2026-10-14-Procrustes-ANOVA-comparisons/index.html</loc>
-    <lastmod>2026-10-15T21:39:31.741Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.michaelcollyer.com/posts/2026-10-10-gpa-computational-proficiency/index.html</loc>
-    <lastmod>2026-10-14T16:35:39.043Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.michaelcollyer.com/posts/2026-10-15-How-RRPP-evolves/index.html</loc>
-    <lastmod>2026-10-16T10:52:48.419Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.michaelcollyer.com/posts/2026-10-16-pairwise-update/index.html</loc>
-    <lastmod>2026-10-16T14:25:28.044Z</lastmod>
-  </url>
-  <url>
-    <loc>https://www.michaelcollyer.com/index.html</loc>
-    <lastmod>2026-10-11T14:57:24.671Z</lastmod>
+    <lastmod>2026-10-19T14:44:45.372Z</lastmod>
   </url>
 </urlset>

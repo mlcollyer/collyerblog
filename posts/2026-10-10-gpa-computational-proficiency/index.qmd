@@ -2,7 +2,7 @@
 title: "Are all GPA functions the same?"
 author: "Mike Collyer"
 date: "2026-10-10"
-categories: [code, analysis]
+categories: [code, analysis, geomorph]
 image: blogimage.png
 ---
 

@@ -196,6 +196,7 @@ window.Quarto = {
                 <div class="quarto-category">code</div>
                 <div class="quarto-category">analysis</div>
                 <div class="quarto-category">news</div>
+                <div class="quarto-category">RRPP</div>
               </div>
                   </div>
   </div>
@@ -255,13 +256,13 @@ window.Quarto = {
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>                           <span class="at">iter =</span> <span class="dv">49999</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
- 22.299  24.504  14.972 </code></pre>
+ 23.119  25.354  17.043 </code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(PW1 <span class="ot">&lt;-</span> <span class="fu">pairwise</span>(fit1, </span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">groups =</span> Pupfish<span class="sc">$</span>Group))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  6.935   0.064   7.022 </code></pre>
+  7.109   0.105   7.278 </code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>S1 <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW1, <span class="at">stat.table =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>S1<span class="sc">$</span>pairwise.tables<span class="sc">$</span>P </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -298,13 +299,13 @@ M.Sinkhole 0.00012 0.00024    0.00036    1.00000</code></pre>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">iter =</span> <span class="dv">499</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  0.164   0.214   0.191 </code></pre>
+  0.164   0.218   0.194 </code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">system.time</span>(PW2 <span class="ot">&lt;-</span> <span class="fu">pairwise</span>(fit2, </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">groups =</span> Pupfish<span class="sc">$</span>Group))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>   user  system elapsed 
-  0.065   0.005   0.071 </code></pre>
+  0.064   0.004   0.069 </code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>S2a <span class="ot">&lt;-</span> <span class="fu">summary</span>(PW2, <span class="at">stat.table =</span> <span class="cn">FALSE</span>,</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>               <span class="at">test.type =</span> <span class="st">"stdist"</span>,</span>

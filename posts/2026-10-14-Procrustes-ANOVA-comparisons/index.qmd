@@ -2,7 +2,7 @@
 title: "How fast is your Procrustes ANOVA?"
 author: "Mike Collyer"
 date: "2026-10-14"
-categories: [code, analysis]
+categories: [code, analysis, RRPP, geomorph]
 ---
 
 # High-dimensional Procrustes ANOVA

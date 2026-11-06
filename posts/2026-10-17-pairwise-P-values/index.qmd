@@ -3,7 +3,7 @@ title: "Should I adjust my P-values for pairwise comparisons in permutation test
 subtitle: "Also an update for the `pairwise` function"
 author: "Mike Collyer"
 date: "2026-10-17"
-categories: [code, analysis, news]
+categories: [code, analysis, news, RRPP]
 image: pie.png
 ---
 
