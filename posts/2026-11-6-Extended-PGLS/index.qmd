@@ -161,9 +161,9 @@ legend("bottom",
 
 # What did we learn?
 
-1. Only `Species` is *largely* effected by changing $\delta$.  This makes some sense, since covariances are based on species relatedness, and $\delta$ augments these values at the individual level.
+1. Only `Species` is *largely* affected by changing $\delta$.  This makes some sense, since covariances are based on species relatedness, and $\delta$ augments these values at the individual level.
 2. Small changes in effect sizes were apparent for non-species effects, only where $\delta \approx 0$.  Mostly this was the case for the full model, which contains `Species`.
-3. Otherise, effects were constant, irrespective of $\delta$.
+3. Otherwise, effects were consistent, irrespective of $\delta$.
 4. All effects were stable at $\delta \approx 0.25$
 5. `Species` was a significant effect at $\delta = 0.1$
 
@@ -176,6 +176,6 @@ Second, because the `Species` effect is not as much interest as the `Species:Sex
 # If I were to report these results again, here is what I would do:
 
 1. Remove the `Species` effect from the table.  It is not helpful.
-2. Report the trend for the `Species` effect based on a range of $\delta$, spearately.
+2. Report the trend for the `Species` effect based on a range of $\delta$, **separate** from the other effects in the table.
 3. Speculate whether the low $\delta$ value is consistent with an adaptive radiation.  If a significant `Species` effect is observed even if the linear model is rigged to account for it, it suggests species might diverge in shape more than expected from a BM model of divergence.
 4. Focus interpretations on `Species:Sex`.  ***This is the point of the analysis, anyway, and it appears scaling weights to deal with the awkward non-species-effect that could arise has no influence on differences of within-species trends across species!***
