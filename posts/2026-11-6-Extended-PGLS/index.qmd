@@ -69,7 +69,7 @@ $$
 \boldsymbol{\Omega}_E = \mathbf{XW}\boldsymbol{\Omega}\mathbf{WX}^T
 .
 $$
-$\mathbf{W}$ is a weight matrix (diagonal matrix) providing values to use to jointly multiply the products between $\boldsymbol{\Omega}$ and $\mathbf{WX}$, to lessen their magnitude.  The elements of $\mathbf{W}$ are equal to:
+$\mathbf{W}$ is a weight matrix (diagonal matrix) providing values to use to jointly multiply the products between $\boldsymbol{\Omega}$ and $\mathbf{X}$, to lessen their magnitude.  The elements of $\mathbf{W}$ are equal to:
 
 $$
 e^{-\delta\gamma}

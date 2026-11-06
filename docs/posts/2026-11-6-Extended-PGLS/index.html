@@ -292,7 +292,7 @@ b = \frac{\sum \tilde x \tilde y}{\sum \tilde x^2}.
 <p><span class="math display">\[
 \boldsymbol{\Omega}_E = \mathbf{XW}\boldsymbol{\Omega}\mathbf{WX}^T
 .
-\]</span> <span class="math inline">\(\mathbf{W}\)</span> is a weight matrix (diagonal matrix) providing values to use to jointly multiply the products between <span class="math inline">\(\boldsymbol{\Omega}\)</span> and <span class="math inline">\(\mathbf{WX}\)</span>, to lessen their magnitude. The elements of <span class="math inline">\(\mathbf{W}\)</span> are equal to:</p>
+\]</span> <span class="math inline">\(\mathbf{W}\)</span> is a weight matrix (diagonal matrix) providing values to use to jointly multiply the products between <span class="math inline">\(\boldsymbol{\Omega}\)</span> and <span class="math inline">\(\mathbf{X}\)</span>, to lessen their magnitude. The elements of <span class="math inline">\(\mathbf{W}\)</span> are equal to:</p>
 <p><span class="math display">\[
 e^{-\delta\gamma}
 \]</span> The parameter, <span class="math inline">\(\delta\)</span> is an independence parameter. If 0, then the weights are 1, meaning the transformation is unweighted. Larger values push the weights toward 0, making covariance small, <em>meaning a trend toward independece of observations</em>. The parameter, <span class="math inline">\(\gamma\)</span> is a sample size adjuster. If <span class="math inline">\(\gamma = 1\)</span>, sample size has no effect on weights. If based on sample size, then weights are decreased in proportion to the square-root of sample size, allowing larger samples to behave as if more independent.</p>
